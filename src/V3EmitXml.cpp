@@ -238,6 +238,49 @@ class EmitXmlFileVisitor final : public AstNVisitor {
         putsQuoted(cvtToStr(nodep->lhsp()->widthMinV()));
         outputChildrenEnd(nodep, "");
     }
+	virtual void visit(AstIf* nodep) override {
+		AstNode *ifsp = nodep->ifsp();
+		AstNode *elsesp = nodep->elsesp();
+		int ifs_cnt = 0, elses_cnt = 0;
+		while (ifsp != NULL) {
+			ifsp = ifsp->nextp();
+			ifs_cnt++;
+		}
+		while (elsesp != NULL) {
+			elsesp = elsesp->nextp();
+			elses_cnt++;
+		}
+		outputTag(nodep, "");
+		puts(" ifs_cnt=");
+		putsQuoted(std::to_string(ifs_cnt));
+		puts(" elses_cnt=");
+		putsQuoted(std::to_string(elses_cnt));
+		outputChildrenEnd(nodep, "");
+	}
+	virtual void visit(AstScopeName* nodep) override {
+        outputTag(nodep, "");
+		puts(" name=");
+		putsQuoted(nodep->scopePrettySymName());
+		puts("/>\n");
+    }
+	virtual void visit(AstText* nodep) override {
+		outputTag(nodep, "");
+		puts(" name=");
+		putsQuoted(nodep->text());
+		outputChildrenEnd(nodep, "");
+	}
+	virtual void visit(AstVarRef* nodep) override {
+		outputTag(nodep, "");
+		puts(" hier=");
+		string pretty = nodep->varScopep()->name();
+		string::size_type pos;
+		while ((pos = pretty.find("->")) != string::npos) pretty.replace(pos, 2, ".");
+		while ((pos = pretty.find("__DOT__")) != string::npos) pretty.replace(pos, 7, ".");
+		putsQuoted(pretty);
+		puts("/>\n");
+		//outputChildrenEnd(nodep, "");
+	}
+
 
     // Default
     virtual void visit(AstNode* nodep) override {

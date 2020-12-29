@@ -1033,6 +1033,8 @@ void V3Options::parseOptsList(FileLine* fl, const string& optdir, int argc, char
                 m_exe = flag;
             } else if (onoff(sw, "-flatten", flag /*ref*/)) {
                 m_flatten = flag;
+			} else if (onoff(sw, "-xml-opt", flag /*ref*/)) {
+				m_xml_opt = flag;
             } else if (onoff(sw, "-hierarchical", flag /*ref*/)) {
                 m_hierarchical = flag;
             } else if (onoff(sw, "-hierarchical-child", flag /*ref*/)) {

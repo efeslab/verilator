@@ -187,11 +187,15 @@ static void process() {
     // Must be before first constification pass drops dead code
     V3Undriven::undrivenAll(v3Global.rootp());
 
-    // Assertion insertion
-    //    After we've added block coverage, but before other nasty transforms
-    V3AssertPre::assertPreAll(v3Global.rootp());
-    //
-    V3Assert::assertAll(v3Global.rootp());
+	// If our target is to generate xml, we don't want assertions to be translated into
+	// AstCMath nodes.
+	//if (!v3Global.opt.xmlOnly()) {
+		// Assertion insertion
+		//    After we've added block coverage, but before other nasty transforms
+		V3AssertPre::assertPreAll(v3Global.rootp());
+		//
+		V3Assert::assertAll(v3Global.rootp());
+	//}
 
     if (!(v3Global.opt.xmlOnly() && !v3Global.opt.flatten())) {
         // Add top level wrapper with instance pointing to old top
@@ -512,7 +516,29 @@ static void process() {
     if (v3Global.opt.xmlOnly()
         // Check XML when debugging to make sure no missing node types
         || (v3Global.opt.debugCheck() && !v3Global.opt.lintOnly() && !v3Global.opt.dpiHdrOnly())) {
+		if (v3Global.opt.xmlOpt()) {
+			V3Case::caseAll(v3Global.rootp());
+			V3Unroll::unrollAll(v3Global.rootp());
+			V3Slice::sliceAll(v3Global.rootp());
+			V3Life::lifeAll(v3Global.rootp());
+			V3Table::tableAll(v3Global.rootp());
+			V3Const::constifyAll(v3Global.rootp());
+			V3Dead::deadifyDTypesScoped(v3Global.rootp());
+			v3Global.checkTree();
+			V3Active::activeAll(v3Global.rootp());
+			V3Split::splitAlwaysAll(v3Global.rootp());
+			V3SplitAs::splitAsAll(v3Global.rootp());
+			V3Const::constifyAll(v3Global.rootp());
+			V3Dead::deadifyDTypesScoped(v3Global.rootp());
+			v3Global.checkTree();
+			V3Unroll::unrollAll(v3Global.rootp());
+			V3Dead::deadifyAllScoped(v3Global.rootp());
+			V3Gate::gateAll(v3Global.rootp());
+			V3Const::constifyAll(v3Global.rootp());
+			V3Dead::deadifyAllScoped(v3Global.rootp());
+		}
         V3EmitXml::emitxml();
+		V3EmitV::emitvFiles();
     }
 
     // Output DPI protected library files
