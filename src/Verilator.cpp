@@ -187,15 +187,11 @@ static void process() {
     // Must be before first constification pass drops dead code
     V3Undriven::undrivenAll(v3Global.rootp());
 
-	// If our target is to generate xml, we don't want assertions to be translated into
-	// AstCMath nodes.
-	//if (!v3Global.opt.xmlOnly()) {
-		// Assertion insertion
-		//    After we've added block coverage, but before other nasty transforms
-		V3AssertPre::assertPreAll(v3Global.rootp());
-		//
-		V3Assert::assertAll(v3Global.rootp());
-	//}
+	// Assertion insertion
+	//    After we've added block coverage, but before other nasty transforms
+	V3AssertPre::assertPreAll(v3Global.rootp());
+	//
+	V3Assert::assertAll(v3Global.rootp());
 
     if (!(v3Global.opt.xmlOnly() && !v3Global.opt.flatten())) {
         // Add top level wrapper with instance pointing to old top
