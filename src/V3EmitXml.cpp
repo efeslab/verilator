@@ -105,12 +105,29 @@ class EmitXmlFileVisitor final : public AstNVisitor {
         outputChildrenEnd(nodep, "contassign");
     }
     virtual void visit(AstCell* nodep) override {
-        outputTag(nodep, "instance");  // IEEE: vpiInstance
+        string tag = "instance";
+        outputTag(nodep, tag);  // IEEE: vpiInstance
         puts(" defName=");
         putsQuoted(nodep->modName());  // IEEE vpiDefName
         puts(" origName=");
         putsQuoted(nodep->origName());
-        outputChildrenEnd(nodep, "instance");
+		puts(" instance_type=");
+		putsQuoted(VString::downcase(nodep->modp()->typeName()));
+		if (nodep->paramspBackup() && nodep->modp()->type() == AstType::atModule) {
+			puts(">\n");
+			AstPin *iter = nodep->paramspBackup();
+			while (iter != nullptr) {
+				visit(iter);
+				if (iter->nextp() == nullptr)
+					break;
+				UASSERT(VN_IS(iter->nextp(), Pin), "Module param is not an AstPin!");
+				iter = VN_CAST(iter->nextp(), Pin);
+			}
+            puts("</" + tag + ">\n");
+		}
+		else {
+            puts("/>\n");
+        }
     }
     virtual void visit(AstNetlist* nodep) override {
         puts("<netlist>\n");
@@ -271,14 +288,34 @@ class EmitXmlFileVisitor final : public AstNVisitor {
 	}
 	virtual void visit(AstVarRef* nodep) override {
 		outputTag(nodep, "");
-		puts(" hier=");
-		string pretty = nodep->varScopep()->name();
-		string::size_type pos;
-		while ((pos = pretty.find("->")) != string::npos) pretty.replace(pos, 2, ".");
-		while ((pos = pretty.find("__DOT__")) != string::npos) pretty.replace(pos, 7, ".");
-		putsQuoted(pretty);
-		puts("/>\n");
-		//outputChildrenEnd(nodep, "");
+		if (nodep->varScopep()) {
+			puts(" hier=");
+			string pretty = nodep->varScopep()->name();
+			string::size_type pos;
+			while ((pos = pretty.find("->")) != string::npos) pretty.replace(pos, 2, ".");
+			while ((pos = pretty.find("__DOT__")) != string::npos) pretty.replace(pos, 7, ".");
+			putsQuoted(pretty);
+			puts("/>\n");
+		} else {
+			outputChildrenEnd(nodep, "");
+		}
+	}
+	virtual void visit(AstConst* nodep) override {
+		string tag = VString::downcase(nodep->typeName());
+		puts("<" + tag + " " + nodep->fileline()->xml());
+		puts(" " + nodep->fileline()->xmlDetailedLocation());
+		puts(" name=");
+		putsQuoted(nodep->num().ascii(true, true));
+		if (nodep->num().isFromString()) {
+			puts(" from_string=\"true\"");
+			puts(" str=");
+			putsQuoted(nodep->num().toFromString());
+		}
+		if (nodep->dtypep()) {
+			puts(" dtype_id=");
+			outputId(nodep->dtypep()->skipRefp());
+		}
+		outputChildrenEnd(nodep, "");
 	}
 
 

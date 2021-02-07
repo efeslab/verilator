@@ -724,6 +724,7 @@ class ParamVisitor final : public AstNVisitor {
             nodep->recursive(false);
 
             // Delete the parameters from the cell; they're not relevant any longer.
+			nodep->cloneParamsp();
             if (nodep->paramsp()) nodep->paramsp()->unlinkFrBackWithNext()->deleteTree();
             UINFO(8, "     Done with " << nodep << endl);
             // if (debug() >= 10)

@@ -107,6 +107,8 @@ V3Number::V3Number(VerilogStringLiteral, AstNode* nodep, const string& str) {
         }
     }
     opCleanThis(true);
+	// Added this to recover the string while outputing xml
+	m_stringVal = str;
 }
 
 void V3Number::V3NumberCreate(AstNode* nodep, const char* sourcep, FileLine* fl) {
@@ -2130,6 +2132,11 @@ V3Number& V3Number::opAssignNonXZ(const V3Number& lhs, bool ignoreXZ) {
                 setBit(bit, ignoreXZ ? lhs.bitIs1(bit) : lhs.bitIs(bit));
             }
         }
+		// To recover the original string while outputing xml
+		if (lhs.isFromString()) {
+			m_fromString = true;
+			m_stringVal = lhs.m_stringVal;
+		}
     }
     return *this;
 }

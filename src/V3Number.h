@@ -239,6 +239,7 @@ public:
     bool sized() const { return m_sized; }
     bool autoExtend() const { return m_autoExtend; }
     bool isFromString() const { return m_fromString; }
+	string toFromString() const { return m_stringVal; }
     // Only correct for parsing of numbers from strings, otherwise not used
     // (use AstConst::isSigned())
     bool isSigned() const { return m_signed; }

@@ -513,8 +513,9 @@ static void process() {
         // Check XML when debugging to make sure no missing node types
         || (v3Global.opt.debugCheck() && !v3Global.opt.lintOnly() && !v3Global.opt.dpiHdrOnly())) {
 		if (v3Global.opt.xmlOpt()) {
-			V3Case::caseAll(v3Global.rootp());
 			V3Unroll::unrollAll(v3Global.rootp());
+			V3Unknown::unknownAll(v3Global.rootp());
+			V3Case::caseAll(v3Global.rootp());
 			V3Slice::sliceAll(v3Global.rootp());
 			V3Life::lifeAll(v3Global.rootp());
 			V3Table::tableAll(v3Global.rootp());
@@ -529,7 +530,6 @@ static void process() {
 			v3Global.checkTree();
 			V3Unroll::unrollAll(v3Global.rootp());
 			V3Dead::deadifyAllScoped(v3Global.rootp());
-			V3Gate::gateAll(v3Global.rootp());
 			V3Const::constifyAll(v3Global.rootp());
 			V3Dead::deadifyAllScoped(v3Global.rootp());
 		}

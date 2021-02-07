@@ -2746,6 +2746,8 @@ private:
     bool m_hasIfaceVar : 1;  // True if a Var has been created for this cell
     bool m_recursive : 1;  // Self-recursive module
     bool m_trace : 1;  // Trace this cell
+
+	AstPin *m_paramspBackup = nullptr;
 public:
     AstCell(FileLine* fl, FileLine* mfl, const string& instName, const string& modName,
             AstPin* pinsp, AstPin* paramsp, AstRange* rangep)
@@ -2795,6 +2797,9 @@ public:
     bool isTrace() const { return m_trace; }
     void recursive(bool flag) { m_recursive = flag; }
     bool recursive() const { return m_recursive; }
+
+	AstPin* paramspBackup() const { return m_paramspBackup; }
+	void cloneParamsp();
 };
 
 class AstCellInline final : public AstNode {

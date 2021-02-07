@@ -1148,6 +1148,26 @@ void AstCell::dump(std::ostream& str) const {
         str << " ->UNLINKED:" << modName();
     }
 }
+void AstCell::cloneParamsp() {
+	if (paramspBackup()) {
+		paramspBackup()->unlinkFrBackWithNext()->deleteTree();
+		m_paramspBackup = nullptr;
+	}
+	if (paramsp()) {
+		m_paramspBackup = paramsp()->cloneTree(true);
+		AstPin *iter = m_paramspBackup;
+		while (iter != nullptr) {
+			iter->modVarp(iter->modVarp()->cloneTree(false));
+			UASSERT(VN_IS(iter->exprp(), Const), "Param expr is not Const");
+			AstConst *exprp = VN_CAST(iter->exprp(), Const);
+			exprp->dtypep(exprp->dtypep()->cloneTree(false));
+			if (iter->nextp() == nullptr)
+				break;
+			UASSERT(VN_IS(iter->nextp(), Pin), "Param is not Pin");
+			iter = VN_CAST(iter->nextp(), Pin);
+		}
+	}
+}
 void AstCellInline::dump(std::ostream& str) const {
     this->AstNode::dump(str);
     str << " -> " << origModName();
