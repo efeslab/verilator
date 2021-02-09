@@ -185,6 +185,11 @@ AstVar* V3ParseGrammar::createVariable(FileLine* fileline, const string& name,
 
     AstVar* nodep = new AstVar(fileline, type, name, VFlagChildDType(), arrayDTypep);
     nodep->addAttrsp(attrsp);
+	if (v3Global.opt.forceSplitVar() && type == AstVarType::VAR) {
+		if (dtypep->width() > 1 || arrayp != nullptr) {
+			nodep->addAttrsp(new AstAttrOf(fileline, AstAttrType::VAR_SPLIT_VAR));
+		}
+	}
     nodep->ansi(m_pinAnsi);
     nodep->declTyped(m_varDeclTyped);
     nodep->lifetime(m_varLifetime);

@@ -280,6 +280,7 @@ private:
     bool m_exe = false;             // main switch: --exe
     bool m_flatten = false;         // main switch: --flatten
 	bool m_xml_opt = false;			// main switch: --xml-opt
+	bool m_force_split_var = false; // main switch: --force-split-var
     bool m_hierarchical = false;    // main switch: --hierarchical
     bool m_hierChild = false;       // main switch: --hierarchical-child
     bool m_ignc = false;            // main switch: --ignc
@@ -518,6 +519,7 @@ public:
     bool xInitialEdge() const { return m_xInitialEdge; }
     bool xmlOnly() const { return m_xmlOnly; }
 	bool xmlOpt() const { return m_xml_opt; }
+	bool forceSplitVar() const { return m_force_split_var; }
 
     int buildJobs() const { return m_buildJobs; }
     int convergeLimit() const { return m_convergeLimit; }
