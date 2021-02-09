@@ -284,6 +284,13 @@ static void process() {
         V3Case::caseAll(v3Global.rootp());
     }
 
+
+	if (v3Global.opt.xmlOnly() && v3Global.opt.xmlOpt()) {
+		// If we want to optimze xml, we need to unroll before V3Task, otherwise
+		// the verilog generated from xml will be weird.
+		V3Unroll::unrollAll(v3Global.rootp());
+	}
+
     if (!(v3Global.opt.xmlOnly() && !v3Global.opt.flatten())) {
         // Inline all tasks
         V3Task::taskAll(v3Global.rootp());
