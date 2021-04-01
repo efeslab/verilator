@@ -383,7 +383,6 @@ string V3PreProcImp::commentCleanup(const string& text) {
     while ((pos = cmd.find("//")) != string::npos) cmd.replace(pos, 2, "");
     while ((pos = cmd.find("/*")) != string::npos) cmd.replace(pos, 2, "");
     while ((pos = cmd.find("*/")) != string::npos) cmd.replace(pos, 2, "");
-    while ((pos = cmd.find('\"')) != string::npos) cmd.replace(pos, 1, " ");
     while ((pos = cmd.find('\t')) != string::npos) cmd.replace(pos, 1, " ");
     while ((pos = cmd.find("  ")) != string::npos) cmd.replace(pos, 2, " ");
     while (!cmd.empty() && isspace(cmd[cmd.size() - 1])) cmd.erase(cmd.size() - 1);
@@ -420,6 +419,7 @@ void V3PreProcImp::comment(const string& text) {
 
     bool synth = false;
     bool vlcomment = false;
+    bool preserve_all = false;
     if ((cp[0] == 'v' || cp[0] == 'V') && 0 == (strncmp(cp + 1, "erilator", 8))) {
         cp += strlen("verilator");
         if (*cp == '_') {
@@ -443,11 +443,13 @@ void V3PreProcImp::comment(const string& text) {
     } else if (0 == (strncmp(cp, "ambit synthesis", strlen("ambit synthesis")))) {
         cp += strlen("ambit synthesis");
         synth = true;
+    } else if (0 == (strncmp(cp, "synthesis", strlen("synthesis")))) {
+        preserve_all = true;
     } else {
         return;
     }
 
-    if (!vlcomment && !synth) return;  // Short-circuit
+    if (!vlcomment && !synth && !preserve_all) return;  // Short-circuit
 
     while (isspace(*cp)) cp++;
     string cmd = commentCleanup(string(cp));
@@ -479,6 +481,10 @@ void V3PreProcImp::comment(const string& text) {
             if (!printed) insertUnreadback("/*verilator public_flat_rw*/ " + cmd + " /**/");
         } else {
             if (!printed) insertUnreadback("/*verilator " + cmd + "*/");
+        }
+    } else if (preserve_all) {
+        if (commentTokenMatch(cmd /*ref*/, "synthesis")) {
+            if (!printed) insertUnreadback("/*verilator tag synthesis " + cmd + "*/");
         }
     }
 }
