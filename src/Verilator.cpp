@@ -529,8 +529,8 @@ static void process() {
 			V3Dead::deadifyDTypesScoped(v3Global.rootp());
 			v3Global.checkTree();
 			V3Active::activeAll(v3Global.rootp());
-			V3Split::splitAlwaysAll(v3Global.rootp());
-			V3SplitAs::splitAsAll(v3Global.rootp());
+			//V3Split::splitAlwaysAll(v3Global.rootp());
+			//V3SplitAs::splitAsAll(v3Global.rootp());
 			V3Const::constifyAll(v3Global.rootp());
 			//V3Unknown::unknownAll(v3Global.rootp());
 			V3Dead::deadifyDTypesScoped(v3Global.rootp());
