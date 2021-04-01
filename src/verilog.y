@@ -323,7 +323,6 @@ BISONPRE_VERSION(3.0,%define parse.error verbose)
 // Since we run bison through ../bisonpre, it doesn't know the correct
 // header file name, so we need to tell it.
 BISONPRE_VERSION(3.7,%define api.header.include {"V3ParseBison.h"})
-
 // When writing Bison patterns we use yTOKEN instead of "token",
 // so Bison will error out on unknown "token"s.
 
@@ -1168,6 +1167,14 @@ module_declaration:		// ==IEEE: module_declaration
 			  GRAMMARP->m_modp = nullptr;
 			  SYMP->popScope($1);
 			  GRAMMARP->endLabel($<fl>7,$1,$7); }
+	|	modFront importsAndParametersE portsStarE vlTag ';'
+	/*cont*/    module_itemListE yENDMODULE endLabelE
+			{ $1->modTrace(GRAMMARP->allTracingOn($1->fileline()));  // Stash for implicit wires, etc
+			  if ($2) $1->addStmtp($2); if ($3) $1->addStmtp($3);
+			  if ($6) $1->addStmtp($6);
+			  GRAMMARP->m_modp = nullptr;
+			  SYMP->popScope($1);
+			  GRAMMARP->endLabel($<fl>8,$1,$8); }
 	|	udpFront parameter_port_listE portsStarE ';'
 	/*cont*/    module_itemListE yENDPRIMITIVE endLabelE
 			{ $1->modTrace(false);  // Stash for implicit wires, etc
@@ -1193,6 +1200,7 @@ modFront<modulep>:
 			  $$->timeunit(PARSEP->timeLastUnit());
 			  $$->unconnectedDrive(PARSEP->unconnectedDrive());
 			  PARSEP->rootp()->addModulep($$);
+                          PARSEP->tagNodep($$);
 			  SYMP->pushNew($$);
 			  GRAMMARP->m_modp = $$; }
 	;
@@ -2069,7 +2077,7 @@ data_declaration<nodep>:	// ==IEEE: data_declaration
 	//			// Therefore the virtual_interface_declaration term isn't used
 	//			// 1800-2009:
 	//UNSUP	net_type_declaration			{ $$ = $1; }
-	|	vlTag					{ $$ = nullptr; }
+	|	yVL_TAG					{ $$ = new AstComment($<fl>1, *$1); }
 	;
 
 class_property<nodep>:		// ==IEEE: class_property, which is {property_qualifier} data_declaration
@@ -2086,6 +2094,7 @@ class_property<nodep>:		// ==IEEE: class_property, which is {property_qualifier}
 data_declarationVar<varp>:	// IEEE: part of data_declaration
 	//			// The first declaration has complications between assuming what's the type vs ID declaring
 		data_declarationVarFront list_of_variable_decl_assignments ';'	{ $$ = $2; }
+	|       data_declarationVarFront list_of_variable_decl_assignments vlTag ';'	{ $$ = $2; }
 	;
 
 data_declarationVarClass<varp>: // IEEE: part of data_declaration (for class_property)
@@ -2222,7 +2231,12 @@ dtypeAttr<nodep>:
 	;
 
 vlTag:				// verilator tag handling
-		yVL_TAG					{ if (PARSEP->tagNodep()) PARSEP->tagNodep()->tag(*$1); }
+		yVL_TAG					{
+                    if (PARSEP->tagNodep()) {
+                        PARSEP->tagNodep()->v3warn(VLTAG, "tagging node name " << PARSEP->tagNodep()->name() << " with " << *$1);
+                        PARSEP->tagNodep()->tag(*$1);
+                    }
+                }
 	;
 
 //************************************************

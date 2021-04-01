@@ -126,6 +126,7 @@ public:
         VARHIDDEN,      // Hiding variable
         WIDTH,          // Width mismatch
         WIDTHCONCAT,    // Unsized numbers/parameters in concatenations
+        VLTAG,          // Warn when attach verilator tag to a node
         _ENUM_MAX
         // ***Add new elements below also***
     };
@@ -169,7 +170,7 @@ public:
             "UNDRIVEN", "UNOPT", "UNOPTFLAT", "UNOPTTHREADS",
             "UNPACKED", "UNSIGNED", "UNUSED",
             "USERERROR", "USERFATAL", "USERINFO", "USERWARN",
-            "VARHIDDEN", "WIDTH", "WIDTHCONCAT",
+            "VARHIDDEN", "WIDTH", "WIDTHCONCAT", "VLTAG",
             " MAX"
         };
         // clang-format on
