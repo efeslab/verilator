@@ -483,8 +483,14 @@ void V3PreProcImp::comment(const string& text) {
             if (!printed) insertUnreadback("/*verilator " + cmd + "*/");
         }
     } else if (preserve_all) {
-        if (commentTokenMatch(cmd /*ref*/, "synthesis")) {
-            if (!printed) insertUnreadback("/*verilator tag synthesis " + cmd + "*/");
+        if (commentTokenMatch(cmd /*ref*/, "synthesis") && !printed) {
+            if (cmd.find("translate_off") != string::npos) {
+                ; // skip translate_off
+            } else if (cmd.find("translate_on") != string::npos) {
+                ; // skip translate_on
+            } else {
+                insertUnreadback("/*verilator tag synthesis " + cmd + " */");
+            }
         }
     }
 }
