@@ -3515,6 +3515,7 @@ task_subroutine_callNoMethod<nodep>:	// function_subroutine_callNoMethod (as tas
 	//			// can call as method and yWITH without parenthesis
 	|	id yWITH__PAREN '(' expr ')'		{ $$ = new AstWithParse($2, true, new AstFuncRef($<fl>1, *$1, nullptr), $4); }
 	|	system_t_call				{ $$ = $1; }
+	|	system_t_call {PARSEP->tagNodep($1);} vlTag				{ $$ = $1; }
 	//			// IEEE: method_call requires a "." so is in expr
 	//			// IEEE: ['std::'] not needed, as normal std package resolution will find it
 	//			// IEEE: randomize_call

@@ -3759,6 +3759,7 @@ class AstDisplay final : public AstNodeStmt {
     // Children: SFORMATF to generate print string
 private:
     AstDisplayType m_displayType;
+    string m_tag;
 
 public:
     AstDisplay(FileLine* fl, AstDisplayType dispType, const string& text, AstNode* filep,
@@ -3805,6 +3806,8 @@ public:
     AstSFormatF* fmtp() const { return VN_CAST(op1p(), SFormatF); }
     AstNode* filep() const { return op3p(); }
     void filep(AstNodeVarRef* nodep) { setNOp3p(nodep); }
+    virtual void tag(const string& text) override { m_tag = text; }
+    virtual string tag() const override { return m_tag; }
 };
 
 class AstDumpCtl final : public AstNodeStmt {
