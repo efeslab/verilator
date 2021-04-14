@@ -97,6 +97,7 @@ private:
     bool m_doNConst = false;  // Enable non-constant-child simplifications
     bool m_doShort = true;  // Remove expressions that short circuit
     bool m_doV = false;  // Verilog, not C++ conversion
+    bool m_doVEq = false; // Sometimes we do not want to optimize Eq
     bool m_doGenerate = false;  // Postpone width checking inside generate
     bool m_hasJumpDelay = false;  // JumpGo or Delay under this while
     AstNodeModule* m_modp = nullptr;  // Current module
@@ -2417,14 +2418,14 @@ private:
     ///=== Verilog operators
     // Comparison against 1'b0/1'b1; must be careful about widths.
     // These use Not, so must be Verilog only
-    TREEOPV("AstEq    {$rhsp.width1, $lhsp.isZero,    $rhsp}",  "AstNot{$rhsp}");
-    TREEOPV("AstEq    {$lhsp.width1, $lhsp, $rhsp.isZero}",     "AstNot{$lhsp}");
-    TREEOPV("AstEq    {$rhsp.width1, $lhsp.isAllOnes, $rhsp}",  "replaceWRhs(nodep)");
-    TREEOPV("AstEq    {$lhsp.width1, $lhsp, $rhsp.isAllOnes}",  "replaceWLhs(nodep)");
-    TREEOPV("AstNeq   {$rhsp.width1, $lhsp.isZero,    $rhsp}",  "replaceWRhs(nodep)");
-    TREEOPV("AstNeq   {$lhsp.width1, $lhsp, $rhsp.isZero}",     "replaceWLhs(nodep)");
-    TREEOPV("AstNeq   {$rhsp.width1, $lhsp.isAllOnes, $rhsp}",  "AstNot{$rhsp}");
-    TREEOPV("AstNeq   {$lhsp.width1, $lhsp, $rhsp.isAllOnes}",  "AstNot{$lhsp}");
+    TREEOPE("AstEq    {$rhsp.width1, $lhsp.isZero,    $rhsp}",  "AstNot{$rhsp}");
+    TREEOPE("AstEq    {$lhsp.width1, $lhsp, $rhsp.isZero}",     "AstNot{$lhsp}");
+    TREEOPE("AstEq    {$rhsp.width1, $lhsp.isAllOnes, $rhsp}",  "replaceWRhs(nodep)");
+    TREEOPE("AstEq    {$lhsp.width1, $lhsp, $rhsp.isAllOnes}",  "replaceWLhs(nodep)");
+    TREEOPE("AstNeq   {$rhsp.width1, $lhsp.isZero,    $rhsp}",  "replaceWRhs(nodep)");
+    TREEOPE("AstNeq   {$lhsp.width1, $lhsp, $rhsp.isZero}",     "replaceWLhs(nodep)");
+    TREEOPE("AstNeq   {$rhsp.width1, $lhsp.isAllOnes, $rhsp}",  "AstNot{$rhsp}");
+    TREEOPE("AstNeq   {$lhsp.width1, $lhsp, $rhsp.isAllOnes}",  "AstNot{$lhsp}");
     TREEOPV("AstLt    {$rhsp.width1, $lhsp.isZero,    $rhsp}",  "replaceWRhs(nodep)");  // Because not signed #s
     TREEOPV("AstGt    {$lhsp.width1, $lhsp, $rhsp.isZero}",     "replaceWLhs(nodep)");  // Because not signed #s
     // Useful for CONDs added around ARRAYSEL's in V3Case step
@@ -2544,6 +2545,7 @@ public:
         PROC_V_WARN,
         PROC_V_NOWARN,
         PROC_V_EXPENSIVE,
+        PROC_V_EXPENSIVE_NOEQ,
         PROC_CPP
     };
 
@@ -2551,15 +2553,17 @@ public:
     explicit ConstVisitor(ProcMode pmode) {
         // clang-format off
         switch (pmode) {
-        case PROC_PARAMS:       m_doV = true;  m_doNConst = true; m_params = true;
+        case PROC_PARAMS:       m_doV = true;  m_doVEq = true;  m_doNConst = true; m_params = true;
                                 m_required = true; break;
-        case PROC_GENERATE:     m_doV = true;  m_doNConst = true; m_params = true;
+        case PROC_GENERATE:     m_doV = true;  m_doVEq = true;  m_doNConst = true; m_params = true;
                                 m_required = true; m_doGenerate = true; break;
         case PROC_LIVE:         break;
-        case PROC_V_WARN:       m_doV = true;  m_doNConst = true; m_warn = true; break;
-        case PROC_V_NOWARN:     m_doV = true;  m_doNConst = true; break;
-        case PROC_V_EXPENSIVE:  m_doV = true;  m_doNConst = true; m_doExpensive = true; break;
-        case PROC_CPP:          m_doV = false; m_doNConst = true; break;
+        case PROC_V_WARN:       m_doV = true;  m_doVEq = true;  m_doNConst = true; m_warn = true; break;
+        case PROC_V_NOWARN:     m_doV = true;  m_doVEq = true;  m_doNConst = true; break;
+        case PROC_V_EXPENSIVE:  m_doV = true;  m_doVEq = true;  m_doNConst = true; m_doExpensive = true; break;
+        case PROC_V_EXPENSIVE_NOEQ:  
+								m_doV = true;  m_doVEq = false; m_doNConst = true; m_doExpensive = true; break;
+        case PROC_CPP:          m_doV = false; m_doVEq = false; m_doNConst = true; break;
         default:                v3fatalSrc("Bad case"); break;
         }
         // clang-format on
@@ -2668,8 +2672,13 @@ void V3Const::constifyAll(AstNetlist* nodep) {
     // Only call from Verilator.cpp, as it uses user#'s
     UINFO(2, __FUNCTION__ << ": " << endl);
     {
-        ConstVisitor visitor(ConstVisitor::PROC_V_EXPENSIVE);
-        (void)visitor.mainAcceptEdit(nodep);
+		if (v3Global.opt.skipOptVerilogEq()) {
+			ConstVisitor visitor(ConstVisitor::PROC_V_EXPENSIVE_NOEQ);
+			(void)visitor.mainAcceptEdit(nodep);
+		} else {
+			ConstVisitor visitor(ConstVisitor::PROC_V_EXPENSIVE);
+			(void)visitor.mainAcceptEdit(nodep);
+		}
     }  // Destruct before checking
     V3Global::dumpCheckGlobalTree("const", 0, v3Global.opt.dumpTreeLevel(__FILE__) >= 3);
 }
