@@ -158,6 +158,11 @@ class EmitXmlFileVisitor final : public AstNVisitor {
             puts(" vartype=");
             putsQuoted(!vt.empty() ? vt : kw);
         }
+		if (nodep->isSigned()) {
+			puts(" signed=\"true\"");
+		} else {
+			puts(" signed=\"false\"");
+		}
         puts(" origName=");
         putsQuoted(nodep->origName());
         // Attributes
@@ -217,6 +222,11 @@ class EmitXmlFileVisitor final : public AstNVisitor {
             puts(" left=\"" + cvtToStr(nodep->left()) + "\"");
             puts(" right=\"" + cvtToStr(nodep->right()) + "\"");
         }
+		if (nodep->isSigned()) {
+			puts(" signed=\"true\"");
+		} else {
+			puts(" signed=\"false\"");
+		}
         puts("/>\n");
     }
     virtual void visit(AstIfaceRefDType* nodep) override {
