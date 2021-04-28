@@ -524,7 +524,7 @@ static void process() {
 			V3Case::caseAll(v3Global.rootp());
 			V3Slice::sliceAll(v3Global.rootp());
 			V3Life::lifeAll(v3Global.rootp());
-			V3Table::tableAll(v3Global.rootp());
+			//V3Table::tableAll(v3Global.rootp());
 			V3Const::constifyAll(v3Global.rootp());
 			V3Dead::deadifyDTypesScoped(v3Global.rootp());
 			v3Global.checkTree();
